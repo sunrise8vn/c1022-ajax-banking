@@ -11,33 +11,33 @@
     <div class="container">
         <header>
             <h1>Customers</h1>
-            <form method="post">
+            <form id="frmCreateCustomer" method="post">
                 <div class="row">
                     <div class="form-group col-lg-6">
                         <label>Full name</label>
-                        <input type="text" class="form-control" placeholder="Enter full name">
+                        <input type="text" class="form-control" id="fullNameCre" placeholder="Enter full name">
                     </div>
                     <div class="form-group col-lg-6">
                         <label>Email address</label>
-                        <input type="email" class="form-control" placeholder="Enter email">
+                        <input type="email" class="form-control" id="emailCre" placeholder="Enter email">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <div class="form-group col-lg-6">
                         <label>Phone</label>
-                        <input type="tel" class="form-control" placeholder="Enter phone">
+                        <input type="tel" class="form-control" id="phoneCre" placeholder="Enter phone">
                     </div>
                     <div class="form-group col-lg-6">
                         <label>Address</label>
-                        <input type="text" class="form-control" placeholder="Enter address">
+                        <input type="text" class="form-control" id="addressCre" placeholder="Enter address">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-success mr-2">Submit</button>
+                <button type="button" id="btnCreate" class="btn btn-success mr-2">Submit</button>
             </form>
         </header>
 
         <div class="content">
-            <table class="table table-hover">
+            <table id="tbCustomer" class="table table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -46,11 +46,11 @@
                         <th>Phone</th>
                         <th>Address</th>
                         <th>Balance</th>
-                        <th colspan="3">Action</th>
+                        <th colspan="4">Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <!-- <tr>
                         <td>1</td>
                         <td>NVA</td>
                         <td>nva@co.cc</td>
@@ -72,19 +72,64 @@
                                 Withdraw
                             </button>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- Modal Update -->
+    <div class="modal fade" id="modalUpdate" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal update</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="frmUpdateCustomer" method="post">
+                    <div class="row">
+                        <div class="form-group col-lg-6">
+                            <label>Full name</label>
+                            <input type="text" class="form-control" id="fullNameUp" placeholder="Enter full name">
+                        </div>
+                        <div class="form-group col-lg-6">
+                            <label>Email address</label>
+                            <input type="email" class="form-control" id="emailUp" placeholder="Enter email">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="form-group col-lg-6">
+                            <label>Phone</label>
+                            <input type="tel" class="form-control" id="phoneUp" placeholder="Enter phone">
+                        </div>
+                        <div class="form-group col-lg-6">
+                            <label>Address</label>
+                            <input type="text" class="form-control" id="addressUp" placeholder="Enter address">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="btnUpdate" class="btn btn-outline-secondary">Update</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
     <script src="/assets/jquery/jquery-3.6.0.min.js"></script>
+
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
 
     <script>
 
+        let indexId = 1;
+        let currentCustomerId;
+
         let customers = [
             {
-                id: 1,
+                id: indexId++,
                 fullName: 'NVA',
                 email: 'nva@co.cc',
                 phone: '2345',
@@ -92,7 +137,7 @@
                 balance: 0
             },
             {
-                id: 2,
+                id: indexId++,
                 fullName: 'NVB',
                 email: 'nvb@co.cc',
                 phone: '23456',
@@ -100,6 +145,171 @@
                 balance: 0
             }
         ]
+
+        $('#btnCreate').on('click', () => {
+            let fullName = $('#fullNameCre').val();
+            let email = $('#emailCre').val();
+            let phone = $('#phoneCre').val();
+            let address = $('#addressCre').val();
+            let balance = 0;
+
+            let obj = {
+                id: indexId++,
+                fullName,
+                email,
+                phone,
+                address,
+                balance: 0
+            }
+
+            customers.push(obj);
+
+            let str = renderCustomer(obj);
+            $('#tbCustomer tbody').prepend(str);
+        })
+
+        $('#btnUpdate').on('click', () => {
+            let fullName = $('#fullNameUp').val();
+            let email = $('#emailUp').val();
+            let phone = $('#phoneUp').val();
+            let address = $('#addressUp').val();
+            let balance = 0;
+
+            let obj = {};
+
+            customers.filter(item => {
+                if (item.id === currentCustomerId) {
+                    item.fullName = fullName;
+                    item.email = email;
+                    item.phone = phone;
+                    item.address = address;
+
+                    obj = item;
+                }
+            })
+
+            let str = renderCustomer(obj);
+            $('#tr_' + obj.id).replaceWith(str);
+
+            $('.edit').off('click');
+
+            $('.edit').on('click', function() {                
+                let customerId = $(this).data('id');
+                
+                let customer = findCustomerById(customerId);
+                
+                if (customer) {
+                    currentCustomerId = customerId;
+                    $('#fullNameUp').val(customer.fullName);
+                    $('#emailUp').val(customer.email);
+                    $('#phoneUp').val(customer.phone);
+                    $('#addressUp').val(customer.address);
+
+                    $('#modalUpdate').modal('show');
+                }
+            })
+
+            $('#modalUpdate').modal('hide');
+        })
+
+        function renderCustomer(obj) {
+            return `
+                <tr id="tr_${obj.id}">
+                    <td>${obj.id}</td>
+                    <td>${obj.fullName}</td>
+                    <td>${obj.email}</td>
+                    <td>${obj.phone}</td>
+                    <td>${obj.address}</td>
+                    <td>${obj.balance}</td>
+                    <td>
+                        <button class="btn btn-outline-secondary edit" data-id="${obj.id}">
+                            Edit
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-success">
+                            Deposit
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-warning">
+                            Withdraw
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-danger delete" data-id="${obj.id}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        
+        function findCustomerById(id) {
+            return customers.find(item => item.id === id)
+        }
+
+        function getAllCustomers() {
+            $.ajax({
+                type: 'GET',
+                url: 'http://localhost:3300/customers'
+            })
+            .done((data) => {
+                $.each(data, (i, item) => {
+                    let str = renderCustomer(item);
+                    $('#tbCustomer tbody').prepend(str);                
+                })
+            })
+            .fail((error) => {
+                console.log(error);
+            })
+        }
+        
+
+        function main() {
+
+            // $.each(customers, (i, item) => {
+            //     let str = renderCustomer(item);
+            //     $('#tbCustomer tbody').prepend(str);                
+            // })
+
+            getAllCustomers();
+
+            $('.edit').on('click', function() {
+                let customerId = $(this).data('id');
+                
+                let customer = findCustomerById(customerId);
+                
+                if (customer) {
+                    currentCustomerId = customerId;
+                    $('#fullNameUp').val(customer.fullName);
+                    $('#emailUp').val(customer.email);
+                    $('#phoneUp').val(customer.phone);
+                    $('#addressUp').val(customer.address);
+
+                    $('#modalUpdate').modal('show');
+                }
+            })
+
+            $('.delete').on('click', function() {
+                let customerId = $(this).data('id');
+                
+                let customer = findCustomerById(customerId);
+                
+                if (customer) {
+                    $.each(customers, (i, item) => {
+                        if (item.id === customerId) {
+                            customers.splice(i, 1);
+                            $('#tr_' + customerId).remove();
+                            alert("Đã xóa thành công")
+                        }
+                    })
+                }
+            })
+        }
+
+        main();
 
 
     </script>
