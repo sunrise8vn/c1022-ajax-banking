@@ -6,4 +6,6 @@ class AppBase {
     static API_CUSTOMER = this.API_SERVER + '/customers';
 
     static API_DEPOSIT = this.API_SERVER + '/deposits';
+
+    static API_TRANSFER = this.API_SERVER + '/transfers';
 }
